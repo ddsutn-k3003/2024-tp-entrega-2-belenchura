@@ -9,6 +9,7 @@ import io.javalin.http.HttpStatus;
 import io.javalin.json.JavalinJackson;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static ar.edu.utn.dds.k3003.app.WebApp.configureObjectMapper;
 
@@ -26,8 +27,7 @@ public class ViandaTestServer {
             }));
         }).start(port);
 
-        app.get("/viandas/{qr}", ViandaTestServer::obtenerVianda);
-        app.post("/pepe", ViandaTestServer::trasladoTest);
+        app.get("/colaboradores/{colaboradorId}/viandas", ViandaTestServer::obtenerViandasColaborador);
     }
 
     private static void trasladoTest(Context context) {
@@ -37,16 +37,37 @@ public class ViandaTestServer {
         context.json(trasladoDTO);
     }
 
-    private static void obtenerVianda(Context context) {
+    private static void obtenerViandasColaborador(Context context) {
+        try {
+            // Parseo de parámetros de ruta
+            var colaboradorId = Long.parseLong(context.pathParam("colaboradorId"));
 
-        var qr = context.pathParam("qr");
-        if (qr.equals("unQRQueExiste")) {
-            var viandaDTO1 = new ViandaDTO(qr, LocalDateTime.now(), EstadoViandaEnum.PREPARADA, 2L, 1);
-            viandaDTO1.setId(14L);
-            context.json(viandaDTO1);
-        } else {
-            context.result("Vianda no encontrada: " + qr);
-            context.status(HttpStatus.NOT_FOUND);
+            // Parseo de parámetros de consulta
+            var mes = Integer.parseInt(context.queryParam("mes"));
+            var anio = Integer.parseInt(context.queryParam("anio"));
+
+            if (colaboradorId == 1L) {
+                // Datos de ejemplo mejorados
+                var viandaDTO1 = new ViandaDTO("QR001", LocalDateTime.now(), EstadoViandaEnum.PREPARADA, colaboradorId, 1);
+                var viandaDTO2 = new ViandaDTO("QR002", LocalDateTime.now(), EstadoViandaEnum.EN_TRASLADO, colaboradorId, 1);
+                var viandaDTO3 = new ViandaDTO("QR003", LocalDateTime.now(), EstadoViandaEnum.DEPOSITADA, colaboradorId, 1);
+
+                // Lista de viandas para devolver
+                List<ViandaDTO> viandas = List.of(viandaDTO1, viandaDTO2, viandaDTO3);
+                context.json(viandas);
+            } else {
+                // Caso en que el colaborador no es encontrado
+                context.result("Viandas no encontradas para el colaborador con ID: " + colaboradorId);
+                context.status(HttpStatus.NOT_FOUND);
+            }
+        } catch (NumberFormatException e) {
+            // Manejo de excepción para parámetros inválidos
+            context.result("Parámetros de consulta inválidos.");
+            context.status(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            // Manejo de otras posibles excepciones
+            context.result("Error al procesar la solicitud.");
+            context.status(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

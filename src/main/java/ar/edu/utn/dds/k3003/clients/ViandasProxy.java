@@ -42,24 +42,23 @@ public class ViandasProxy implements FachadaViandas {
     return null;
   }
 
-  @Override
-  public List<ViandaDTO> viandasDeColaborador(Long aLong, Integer integer, Integer integer1)
-      throws NoSuchElementException {
-    return null;
-  }
-
   @SneakyThrows
   @Override
-  public ViandaDTO buscarXQR(String qr) throws NoSuchElementException {
-    Response<ViandaDTO> execute = service.get(qr).execute();
+  public List<ViandaDTO> viandasDeColaborador(Long colaboradorId, Integer mes, Integer anio) throws NoSuchElementException {
+    Response<List<ViandaDTO>> execute = service.get(colaboradorId, mes, anio).execute();
 
     if (execute.isSuccessful()) {
       return execute.body();
     }
     if (execute.code() == HttpStatus.NOT_FOUND.getCode()) {
-      throw new NoSuchElementException("no se encontro la vianda " + qr);
+      throw new NoSuchElementException("No se encontraron viandas del colaborador " + colaboradorId);
     }
-    throw new RuntimeException("Error conectandose con el componente viandas");
+    throw new RuntimeException("Error al conectarse con el componente Viandas");
+  }
+
+  @Override
+  public ViandaDTO buscarXQR(String qr) throws NoSuchElementException {
+    return null;
   }
 
   @Override

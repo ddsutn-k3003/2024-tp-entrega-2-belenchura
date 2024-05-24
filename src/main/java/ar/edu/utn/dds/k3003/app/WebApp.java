@@ -1,8 +1,8 @@
 package ar.edu.utn.dds.k3003.app;
 
+import ar.edu.utn.dds.k3003.clients.LogisticaProxy;
 import ar.edu.utn.dds.k3003.clients.ViandasProxy;
-import ar.edu.utn.dds.k3003.controller.RutaController;
-import ar.edu.utn.dds.k3003.controller.TrasladoController;
+import ar.edu.utn.dds.k3003.controller.ColaboradorController;
 import ar.edu.utn.dds.k3003.facades.dtos.Constants;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +23,7 @@ public class WebApp {
     var objectMapper = createObjectMapper();
     var fachada = new Fachada();
     fachada.setViandasProxy(new ViandasProxy(objectMapper));
+    fachada.setLogisticaProxy(new LogisticaProxy(objectMapper));
 
     var port = Integer.parseInt(env.getOrDefault("PORT", "8080"));
 
@@ -30,14 +31,18 @@ public class WebApp {
       config.jsonMapper(new JavalinJackson().updateMapper(mapper -> {
         configureObjectMapper(mapper);
       }));
+
     }).start(port);
 
-    var rutaController = new RutaController(fachada);
-    var trasladosController = new TrasladoController(fachada);
+    var colaboradorController = new ColaboradorController(fachada);
 
-    app.post("/rutas", rutaController::agregar);
-    app.post("/traslados", trasladosController::asignar);
-    app.get("/traslados/{id}", trasladosController::obtener);
+    app.post("/colaboradores", colaboradorController::agregar);
+    app.get("/colaboradores/{colaboradorId}", colaboradorController::obtener);
+    app.patch("/colaboradores/{colaboradorId}",colaboradorController::modificar);
+    app.get("/colaboradores/{colaboradorId}/puntos",colaboradorController::puntos);
+    app.put("/formula",colaboradorController::actualizarPesosPuntos);
+
+
   }
 
   public static ObjectMapper createObjectMapper() {
